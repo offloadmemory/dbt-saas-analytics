@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: fct_payments
+    description: >
+      One row per Stripe payment, with customer dimension and the
+      customer's first matching Zoho order (if any). Use this for any
+      revenue reporting: monthly revenue, customer LTV, currency mix,
+      payment-to-order conversion.
+    config:
+      tags: [revenue]
+    columns:
+      - name: payment_id
+        description: "Primary key. From stg_stripe__payments."
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Surrogate key from dim_customers. Null if the payment email matches no customer."
+      - name: customer_email
+        description: "Lower-cased email."
+      - name: amount
+        description: "Payment amount in `currency` units."
+        tests:
+          - not_null
+      - name: currency
+        description: "ISO 4217 currency code."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['USD', 'EUR']
+      - name: created_at
+        description: "Timestamp the payment was created."
+        tests:
+          - not_null
+      - name: matched_order_id
+        description: "First matching Zoho order_id for this customer's email, or null."
+      - name: matched_order_total
+        description: "Total amount of the matching Zoho order, or null."
+      - name: matched_order_date
+        description: "Order date of the matching Zoho order, or null."
+      - name: has_matching_order
+        description: "True iff at least one Zoho order matches this payment's email."
+        tests:
+          - not_null

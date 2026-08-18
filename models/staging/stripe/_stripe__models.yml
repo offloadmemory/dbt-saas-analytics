@@ -3,6 +3,8 @@ version: 2
 models:
   - name: stg_stripe__payments
     description: "One row per Stripe payment, with typed columns and normalized email."
+    config:
+      tags: [revenue]
     columns:
       - name: payment_id
         description: "Primary key."

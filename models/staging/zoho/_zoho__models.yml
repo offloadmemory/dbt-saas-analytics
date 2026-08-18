@@ -3,6 +3,8 @@ version: 2
 models:
   - name: stg_zoho__orders
     description: "One row per Zoho order, with typed columns and normalized email."
+    config:
+      tags: [revenue]
     columns:
       - name: order_id
         description: "Primary key."

@@ -7,6 +7,8 @@ models:
       (joined on lower-cased customer_email). One row per payment; the
       has_matching_order boolean flags whether the customer has at least
       one Zoho order.
+    config:
+      tags: [revenue]
     columns:
       - name: payment_id
         description: "Primary key. From stg_stripe__payments."
@@ -40,6 +42,8 @@ models:
     description: >
       Hubspot deals enriched with the customer's earliest Stripe payment
       timestamp (joined on lower-cased customer_email). One row per deal.
+    config:
+      tags: [sales]
     columns:
       - name: deal_id
         description: "Primary key. From stg_hubspot__deals."

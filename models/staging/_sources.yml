@@ -9,6 +9,7 @@ sources:
   - name: hubspot
     description: "Hubspot CRM deals loaded from seeds/hubspot_deals.csv."
     schema: main
+    tags: [sales]
     tables:
       - name: hubspot_deals
         description: "One row per Hubspot deal."
@@ -31,6 +32,7 @@ sources:
   - name: stripe
     description: "Stripe payment transactions loaded from seeds/stripe_payments.csv."
     schema: main
+    tags: [revenue]
     tables:
       - name: stripe_payments
         description: "One row per Stripe payment."
@@ -51,6 +53,7 @@ sources:
   - name: zoho
     description: "Zoho order data loaded from seeds/zoho_orders.csv."
     schema: main
+    tags: [revenue]
     tables:
       - name: zoho_orders
         description: "One row per Zoho order."

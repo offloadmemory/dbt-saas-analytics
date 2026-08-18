@@ -1,0 +1,80 @@
+version: 2
+
+models:
+  - name: fct_won_deals
+    description: >
+      Hubspot deals filtered to stage = 'Closed-Won', enriched with the
+      customer's first Stripe payment timestamp and the customer dimension.
+      Replaces the original models/legacy/won_deals.sql.
+    config:
+      tags: [sales, revenue]
+    columns:
+      - name: deal_id
+        description: "Primary key."
+        tests:
+          - unique
+          - not_null
+      - name: deal_name
+        description: "Human-readable deal name."
+      - name: deal_owner
+        description: "Sales rep who owns the deal."
+      - name: amount
+        description: "Deal amount in USD."
+        tests:
+          - not_null
+      - name: close_date
+        description: "Close date for the deal."
+      - name: customer_email
+        description: "Customer email."
+        tests:
+          - not_null
+      - name: customer_id
+        description: "Surrogate key from dim_customers."
+        tests:
+          - not_null
+      - name: first_payment_at
+        description: "Earliest Stripe payment timestamp for the customer; null if no payments."
+      - name: days_to_first_payment
+        description: "close_date - first_payment_at (in days); null if no payments."
+
+  - name: fct_pipeline
+    description: >
+      One row per Hubspot deal across ALL stages (not just Closed-Won).
+      Use this for pipeline coverage, win rate by rep, deals by stage,
+      forecasting. The 'Closed-Won' subset is exposed as fct_won_deals.
+    config:
+      tags: [sales]
+    columns:
+      - name: deal_id
+        description: "Primary key."
+        tests:
+          - unique
+          - not_null
+      - name: deal_name
+        description: "Human-readable deal name."
+      - name: deal_owner
+        description: "Sales rep who owns the deal."
+      - name: amount
+        description: "Deal amount in USD."
+        tests:
+          - not_null
+      - name: close_date
+        description: "Close date for the deal."
+      - name: stage
+        description: "Pipeline stage."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Closed-Won', 'Closed-Lost', 'Negotiation', 'Qualification', 'Prospecting']
+      - name: customer_email
+        description: "Customer email."
+      - name: customer_id
+        description: "Surrogate key from dim_customers. Null if no match."
+      - name: deal_outcome
+        description: "Derived: 'won' for Closed-Won, 'lost' for Closed-Lost, 'open' otherwise."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['won', 'lost', 'open']
