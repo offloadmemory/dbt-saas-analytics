@@ -167,6 +167,9 @@ The lockfile (`uv.lock`) is committed so installs are reproducible across machin
 ## Generating and viewing dbt docs
 
 ```bash
+## Generating and viewing dbt docs
+
+```bash
 # Build the docs site (writes target/manifest.json, target/catalog.json, target/index.html)
 uv run poe docs
 
@@ -175,6 +178,14 @@ uv run dbt docs serve --port 8080
 ```
 
 The lineage graph, model descriptions, column docs, and test coverage are all rendered in the browser.
+
+### Hosted docs
+
+The `docs-deploy` workflow builds the docs on every push to `main` and publishes them to GitHub Pages at:
+
+**[https://offloadmemory.github.io/dbt-saas-analytics/](https://offloadmemory.github.io/dbt-saas-analytics/)**
+
+The first deploy requires enabling Pages in the repo settings (Settings → Pages → Source: GitHub Actions). After that, every push to `main` rebuilds and redeploys the site.
 
 ## Layering rules
 
