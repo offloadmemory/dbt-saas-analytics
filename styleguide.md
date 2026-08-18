@@ -222,6 +222,30 @@ models/marts/
 - Do **not** include time dimensions in mart names. `orders_per_day` is a metric, not a mart.
 - If you outgrow a flat folder, group by department/area of concern (e.g. `marts/finance/`, `marts/marketing/`).
 
+#### Fact vs. dimension
+
+The `fct_` and `dim_` prefixes are not arbitrary — they correspond to the two roles a mart serves in a star schema. Pick the prefix based on the **grain** (one row = what?).
+
+| Prefix | Role | Grain | What it holds | Example in this project |
+| --- | --- | --- | --- | --- |
+| `fct_` | **Fact** | One row per event / transaction / occurrence | Numeric measures (amounts, counts) + foreign keys to dimensions | `fct_payments` (one row per Stripe payment), `fct_won_deals` (one row per closed deal), `fct_pipeline` (one row per Hubspot deal) |
+| `dim_` | **Dimension** | One row per unique entity | Descriptive attributes used for filtering/grouping | `dim_customers` (one row per customer) |
+
+**Why the distinction matters:**
+
+- **Cardinality.** A fact typically has many rows per dimension (one customer has many payments). A dimension has one row per entity.
+- **Join structure.** Facts sit at the center of a star schema; facts hold foreign keys to dimensions. `fct_payments.customer_id` → `dim_customers.customer_id`.
+- **BI tooling.** Most BI tools (Tableau, Looker, Power BI, Metabase) auto-detect `fct_` and `dim_` from the name and treat them differently — facts get measures, dimensions get attributes.
+- **Semantic clarity.** A consumer seeing `fct_payments` knows "this is events, I can sum/count/avg the measures." Seeing `dim_customers` knows "this is entities, I use it for filtering/grouping."
+
+**When in doubt:**
+
+- If the model is a **rollup by entity** (one row per customer, summarized across time), it's a `dim_` — even if it has numeric columns. Per-customer totals are still per-customer.
+- If the model is an **event log** (one row per payment, deal, ticket, click), it's a `fct_`.
+- A common pitfall: a per-customer engagement table reads like a fact ("engagement metrics") but is grain-wise a dimension. Prefix it `dim_`, not `fct_`.
+
+**Naming exception in this project:** `fct_customer_engagement` is misnamed. It's one row per customer (a rollup of engagement metrics across deals, payments, orders), so per the rule above it should be `dim_customer_engagement`. The `fct_` prefix is kept here as a documented local exception — renaming it would break any downstream consumer already querying by the current name. When the project is small enough that no consumer exists, do prefix it `dim_customer_engagement` and update this note.
+
 ### What marts should do
 
 - ✅ **One grain** — e.g. one row per customer, one row per Closed-Won deal.
