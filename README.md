@@ -37,6 +37,10 @@ dbt-saas-analytics/
 
 ## Data lineage
 
+![dbt docs lineage graph](docs/images/lineage.png)
+
+*The full lineage of all 10 models across 3 sources. Rendered from the source Mermaid definition in this README — same source, different output formats (PNG for GitHub preview, Mermaid for interactive viewers).*
+
 ```mermaid
 flowchart LR
     seeds([seeds])
