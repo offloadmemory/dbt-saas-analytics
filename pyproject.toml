@@ -57,10 +57,13 @@ test = "dbt test"
 seed-sample = "python seeder.py"
 
 # Build dbt docs (target/manifest.json + target/catalog.json + index.html).
-# Run `uv run dbt docs serve --port 8080` separately to browse at
-# http://localhost:8080. Only this project's models appear in the
-# lineage graph (no packages installed).
+# Run `uv run poe docs-serve` separately to browse at http://localhost:8080.
+# Only this project's models appear in the lineage graph (no packages installed).
 docs = "dbt docs generate"
+
+# Serve the generated docs locally at http://localhost:8080. Re-runs are safe;
+# dbt will refuse to start if the port is already taken.
+docs-serve = "dbt docs serve --port 8080 --no-browser"
 
 # Convenience: build + test in one command.
 all = [
