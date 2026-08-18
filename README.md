@@ -1,5 +1,7 @@
 # dbt-saas-analytics
 
+[![CI](https://github.com/offloadmemory/dbt-saas-analytics/actions/workflows/dbt-deploy.yml/badge.svg)](https://github.com/offloadmemory/dbt-saas-analytics/actions)
+
 A small, self-contained dbt project that loads three CSV seeds (Hubspot deals, Stripe payments, Zoho orders) into a local DuckDB file, and transforms them through a standard **staging → intermediate → marts** layering. Marts are organized per business domain (sales, revenue, customer) and tagged accordingly.
 
 The point of the project is to be a clean, runnable reference: real sources, real tests, real marts, full CI. Nothing more.
@@ -35,15 +37,47 @@ dbt-saas-analytics/
 
 ## Data lineage
 
-```
-seeds                          staging                       intermediate                marts
-─────────────────              ─────────────                 ─────────────               ──────────────
-hubspot_deals        ───────►  stg_hubspot__deals     ──┐
-                                                  ┌────►  int_deals_with_first_payment ─┐
-                                                  │                                      ├──►  fct_won_deals
-stripe_payments      ───────►  stg_stripe__payments ─┤                                       │
-                                                  ├────►  int_payments_enriched             ├──►  dim_customers
-zoho_orders          ───────►  stg_zoho__orders   ──┘                                       │
+```mermaid
+flowchart LR
+    seeds([seeds])
+    stg_hubspot[stg_hubspot__deals]
+    stg_stripe[stg_stripe__payments]
+    stg_zoho[stg_zoho__orders]
+    int_deals[int_deals_with_first_payment]
+    int_payments[int_payments_enriched]
+    dim_customers[dim_customers]
+    fct_won[fct_won_deals]
+    fct_pipeline[fct_pipeline]
+    fct_payments[fct_payments]
+    fct_engagement[fct_customer_engagement]
+
+    seeds --> stg_hubspot
+    seeds --> stg_stripe
+    seeds --> stg_zoho
+
+    stg_hubspot --> int_deals
+    stg_stripe --> int_deals
+    stg_hubspot --> int_payments
+    stg_stripe --> int_payments
+    stg_zoho --> int_payments
+
+    stg_hubspot --> dim_customers
+    stg_stripe --> dim_customers
+    stg_zoho --> dim_customers
+
+    int_deals --> fct_won
+    dim_customers --> fct_won
+    stg_hubspot --> fct_pipeline
+    dim_customers --> fct_pipeline
+
+    stg_stripe --> fct_payments
+    stg_zoho --> fct_payments
+    dim_customers --> fct_payments
+
+    dim_customers --> fct_engagement
+    stg_hubspot --> fct_engagement
+    stg_stripe --> fct_engagement
+    stg_zoho --> fct_engagement
 ```
 
 ## Prerequisites
@@ -157,6 +191,9 @@ Each folder has its own `_*__models.yml` with column descriptions and schema tes
 
 ## Resources
 
+- [GitHub repo](https://github.com/offloadmemory/dbt-saas-analytics)
 - [dbt documentation](https://docs.getdbt.com/)
 - [dbt-duckdb adapter](https://github.com/duckdb/dbt-duckdb)
 - [DuckDB](https://duckdb.org/)
+- [uv](https://docs.astral.sh/uv/)
+- [poethepoet](https://poethepoet.natn.io/)
