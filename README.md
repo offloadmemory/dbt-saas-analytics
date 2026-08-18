@@ -87,7 +87,6 @@ uv run poe seed-sample
 | `all`         | `build` then `test`.                                      |
 | `seed-sample` | Run `seeder.py` to write `stripe_payments_sample.csv`.    |
 | `docs`        | `dbt docs generate` — write the docs site to `target/`.   |
-| `audit`       | Run the dbt-project-evaluator audit (see styleguide §15). |
 
 After `uv run poe build`, the local DuckDB file is at `./hello_dbt.duckdb` (override with the `DBT_DUCKDB_PATH` env var, which `profiles.yml` reads).
 

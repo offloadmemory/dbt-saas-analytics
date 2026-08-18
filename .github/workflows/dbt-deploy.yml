@@ -26,6 +26,11 @@ jobs:
       - name: Sync dependencies
         run: uv sync --frozen
 
+      - name: dbt deps
+        # Install packages declared in packages.yml (e.g. dbt_project_evaluator).
+        # dbt_packages/ is gitignored so a fresh checkout has none.
+        run: uv run dbt deps
+
       - name: dbt debug
         run: uv run poe debug
 

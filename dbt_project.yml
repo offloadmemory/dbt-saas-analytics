@@ -39,8 +39,3 @@ models:
 dispatch:
   - macro_namespace: dbt
     search_order: ['dbt_project_evaluator', 'dbt']
-
-# Hide installed-package models from `dbt docs` so the lineage graph only
-# shows this project's models. The package still runs via `uv run poe audit`.
-flags:
-  show_package_models: false

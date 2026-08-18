@@ -606,7 +606,6 @@ This is purely a readability rule — the warehouse doesn't care — but a consi
 This project currently has:
 
 - **sqlfluff** (configured at the repo root, `.sqlfluff`) — lints SQL. Run with `uv run sqlfluff lint models/`.
-- **dbt-project-evaluator** (installed via `packages.yml`, version `1.3.4`) — runs an audit of project structure, naming, documentation, and tests. Wrapped by the `audit` poe task: `uv run poe audit`. See section 15 for results.
 
 This project does **not** have:
 
@@ -614,48 +613,6 @@ This project does **not** have:
 - `dbt-checkpoint` (recommended by dbt Labs; a pre-commit-friendly set of dbt-specific hooks. Consider adding if the project grows.)
 
 When the project outgrows manual review, the recommended next step is `pre-commit` + `dbt-checkpoint`. Don't add a tool without a reason.
-
----
-
-## 15. Audit (dbt-project-evaluator)
-
-`dbt-project-evaluator` is run as part of the `audit` poe task:
-
-```bash
-uv run poe audit
-```
-
-This runs all 48 evaluator models and their 29 tests against the current project. As of the last audit:
-
-| Metric | Value |
-| --- | --- |
-| Models in project | 7 |
-| Models with documentation | 7 (100%) |
-| Tests in project | 39 |
-| Models with at least one test | 7 (100%) |
-| Tests per model | 5.57 |
-
-Result: **27 PASS / 2 WARN / 0 ERROR.**
-
-### Known warnings (2, both accepted)
-
-The evaluator surfaces two warnings against this project. Both are intentional, documented here, and **not** to be "fixed" without a reason.
-
-#### `fct_source_directories` (3 rows)
-
-The evaluator expects one `_sources.yml` per source subfolder, e.g. `models/staging/hubspot/_sources.yml`. This project uses a single consolidated `models/staging/_sources.yml` because the dbt style guide on YAML doesn't require per-source files, the project has only three sources, and splitting would multiply identical files.
-
-**Action:** none. Document the choice here instead. If the project grows past ~10 sources, or sources start having dedicated owners, revisit and split per-source.
-
-#### `fct_sources_without_freshness` (3 rows)
-
-The evaluator wants every source to declare a `freshness:` block. This project's sources all point at `dbt seed`-loaded CSVs, not at an external system with an update schedule. `dbt source freshness` would have nothing meaningful to measure against.
-
-**Action:** none. Seed-backed sources have no meaningful freshness. If a real source is added later (e.g. a connection to a live Hubspot/Stripe/Zoho table), that source should declare `freshness:` and the warning will resolve naturally for it.
-
-### What the audit confirms is clean
-
-No chained view dependencies, no hard-coded `database.schema.table` references, no mart or intermediate joining a source directly, no staging model depending on another staging model, no root models, no undocumented models or sources, no missing primary key tests, no unused sources, full naming-convention compliance. See `fct_documentation_coverage` and `fct_test_coverage` for the headline numbers.
 
 ---
 

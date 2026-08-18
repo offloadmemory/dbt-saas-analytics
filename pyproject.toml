@@ -58,18 +58,9 @@ seed-sample = "python seeder.py"
 
 # Build dbt docs (target/manifest.json + target/catalog.json + index.html).
 # Run `uv run dbt docs serve --port 8080` separately to browse at
-# http://localhost:8080. The dbt_project.yml flag `show_package_models: false`
-# hides installed packages (dbt_project_evaluator, dbt_utils) from the
-# rendered lineage graph.
+# http://localhost:8080. Only this project's models appear in the
+# lineage graph (no packages installed).
 docs = "dbt docs generate"
-
-# Run the dbt-project-evaluator audit. Builds the evaluator's fct_ models and
-# runs its tests against this project. Two warnings are expected and
-# documented in styleguide.md (Audit section).
-audit = [
-    { cmd = "dbt run --select package:dbt_project_evaluator" },
-    { cmd = "dbt test --select package:dbt_project_evaluator" },
-]
 
 # Convenience: build + test in one command.
 all = [
