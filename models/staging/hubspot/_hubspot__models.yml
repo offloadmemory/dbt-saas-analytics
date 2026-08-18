@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: stg_hubspot__deals
+    description: "One row per Hubspot deal, with typed columns and normalized email."
+    columns:
+      - name: deal_id
+        description: "Primary key."
+        tests:
+          - unique
+          - not_null
+      - name: deal_name
+        description: "Human-readable deal name."
+      - name: deal_owner
+        description: "Sales rep who owns the deal."
+      - name: amount
+        description: "Deal amount in USD."
+        tests:
+          - not_null
+      - name: close_date
+        description: "Expected or actual close date."
+      - name: stage
+        description: "Pipeline stage."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Closed-Won', 'Closed-Lost', 'Negotiation', 'Qualification', 'Prospecting']
+      - name: customer_email
+        description: "Lower-cased, trimmed primary contact email."
+        tests:
+          - not_null

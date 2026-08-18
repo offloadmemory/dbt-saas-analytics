@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: stg_zoho__orders
+    description: "One row per Zoho order, with typed columns and normalized email."
+    columns:
+      - name: order_id
+        description: "Primary key."
+        tests:
+          - unique
+          - not_null
+      - name: customer_name
+        description: "Customer name on the order."
+        tests:
+          - not_null
+      - name: customer_email
+        description: "Lower-cased, trimmed customer email."
+        tests:
+          - not_null
+      - name: product_name
+        description: "Product ordered."
+      - name: quantity
+        description: "Units ordered."
+        tests:
+          - not_null
+      - name: unit_price
+        description: "Price per unit."
+        tests:
+          - not_null
+      - name: total_amount
+        description: "quantity * unit_price."
+        tests:
+          - not_null
+      - name: order_date
+        description: "Date the order was placed."
+        tests:
+          - not_null

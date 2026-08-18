@@ -1,0 +1,73 @@
+version: 2
+
+# Seeds are loaded into the target schema (default: `main`). The dbt-duckdb
+# adapter prefixes any `+schema:` seed config with the target schema and joins
+# it with `_`, so for a clean layout we keep all seeds in `main` and point
+# each source at `main.<table>` here.
+
+sources:
+  - name: hubspot
+    description: "Hubspot CRM deals loaded from seeds/hubspot_deals.csv."
+    schema: main
+    tables:
+      - name: hubspot_deals
+        description: "One row per Hubspot deal."
+        columns:
+          - name: deal_id
+            description: "Surrogate deal identifier."
+          - name: deal_name
+            description: "Human-readable deal name."
+          - name: deal_owner
+            description: "Sales rep who owns the deal."
+          - name: amount
+            description: "Deal amount in USD."
+          - name: close_date
+            description: "Expected or actual close date."
+          - name: stage
+            description: "Pipeline stage."
+          - name: customer_email
+            description: "Primary contact email for the customer."
+
+  - name: stripe
+    description: "Stripe payment transactions loaded from seeds/stripe_payments.csv."
+    schema: main
+    tables:
+      - name: stripe_payments
+        description: "One row per Stripe payment."
+        columns:
+          - name: payment_id
+            description: "Payment identifier."
+          - name: customer_id
+            description: "Stripe customer identifier."
+          - name: customer_email
+            description: "Customer email at time of payment. May be null."
+          - name: amount
+            description: "Payment amount in the payment currency."
+          - name: currency
+            description: "ISO 4217 currency code."
+          - name: created_at
+            description: "Timestamp the payment was created."
+
+  - name: zoho
+    description: "Zoho order data loaded from seeds/zoho_orders.csv."
+    schema: main
+    tables:
+      - name: zoho_orders
+        description: "One row per Zoho order."
+        columns:
+          - name: order_id
+            description: "Order identifier."
+          - name: customer_name
+            description: "Customer name on the order."
+          - name: customer_email
+            description: "Customer email on the order."
+          - name: product_name
+            description: "Product name ordered."
+          - name: quantity
+            description: "Units ordered."
+          - name: unit_price
+            description: "Price per unit."
+          - name: total_amount
+            description: "Total order amount (quantity * unit_price)."
+          - name: order_date
+            description: "Date the order was placed."

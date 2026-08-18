@@ -1,6 +1,6 @@
 [sqlfluff]
 templater = jinja
-dialect = postgressql
+dialect = duckdb
 exclude_rules = AL04, AL05, AL06, AL07, AM01, AM02, AM03, AM04, AM07, CV01,
                 CV02, CV03, CV04, CV05, CV06, CV07, CV08, CV09, CV10, CV11,
                 LT03, LT05, LT07, LT08, LT12, LT13, RF01, RF02, RF03, RF04,

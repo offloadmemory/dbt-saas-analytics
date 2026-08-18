@@ -2,6 +2,13 @@
 target/
 dbt_packages/
 logs/
+.dbt/
+*.duckdb
 
+# dbt Cloud writes this into the project root; it's a per-user id, not project config.
+.user.yml
 
+# uv: commit uv.lock, ignore the resolved-cached metadata.
+.venv/
 __pycache__/
+*.pyc

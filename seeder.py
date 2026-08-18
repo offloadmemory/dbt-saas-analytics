@@ -1,5 +1,5 @@
 import csv
-from seeder import Faker
+from faker import Faker
 from datetime import datetime, timedelta
 import random
 

@@ -1,0 +1,78 @@
+[project]
+name = "hello-dbt"
+version = "2.0.0"
+description = "A small dbt project that loads Hubspot, Stripe, and Zoho CSV seeds into DuckDB and exposes a clean staging → intermediate → marts model."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = { text = "MIT" }
+authors = [
+    { name = "hello-dbt maintainers" },
+]
+dependencies = [
+    "dbt-core~=1.10",
+    "dbt-duckdb~=1.10",
+    "faker",
+    "poethepoet>=0.32",
+]
+
+[project.scripts]
+# None today — dbt is invoked through the poe tasks below.
+
+# ----------------------------------------------------------------------
+# uv configuration
+# ----------------------------------------------------------------------
+# uv is the project's package manager. `uv sync` installs dependencies
+# into a project-local .venv and respects uv.lock. `uv run poe <task>`
+# runs a task in that environment.
+# ----------------------------------------------------------------------
+
+[tool.uv]
+# Pin a package manager version so contributors get reproducible uv behavior.
+required-version = ">=0.5"
+
+[tool.uv.build-backend]
+module-name = "hello_dbt"
+module-root = ""
+
+# ----------------------------------------------------------------------
+# poethepoet tasks
+# ----------------------------------------------------------------------
+# Run with `uv run poe <task>` (e.g. `uv run poe build`).
+# ----------------------------------------------------------------------
+
+[tool.poe.tasks]
+# Sanity check: profile found, adapter connects.
+debug = "dbt debug"
+
+# Full local build: load seeds, then build all models. Implemented as a
+# script-style task so the workflow is encoded in build.py and easy to read.
+build = { script = "build" }
+
+# Run schema tests against the built models.
+test = "dbt test"
+
+# Run the standalone Faker-based sample generator. Writes
+# stripe_payments_sample.csv next to the script; the dbt pipeline itself
+# reads from seeds/stripe_payments.csv, not from this file.
+seed-sample = "python seeder.py"
+
+# Build dbt docs (target/manifest.json + target/catalog.json + index.html).
+# Run `uv run dbt docs serve --port 8080` separately to browse at
+# http://localhost:8080. The dbt_project.yml flag `show_package_models: false`
+# hides installed packages (dbt_project_evaluator, dbt_utils) from the
+# rendered lineage graph.
+docs = "dbt docs generate"
+
+# Run the dbt-project-evaluator audit. Builds the evaluator's fct_ models and
+# runs its tests against this project. Two warnings are expected and
+# documented in styleguide.md (Audit section).
+audit = [
+    { cmd = "dbt run --select package:dbt_project_evaluator" },
+    { cmd = "dbt test --select package:dbt_project_evaluator" },
+]
+
+# Convenience: build + test in one command.
+all = [
+    { cmd = "poe build" },
+    { cmd = "poe test" },
+]

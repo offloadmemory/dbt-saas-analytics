@@ -1,0 +1,9 @@
+hello_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      # Path to the local DuckDB file. Override with the DBT_DUCKDB_PATH env
+      # var to point CI or other tools at a different file.
+      path: "{{ env_var('DBT_DUCKDB_PATH', 'hello_dbt.duckdb') }}"
+      threads: 4

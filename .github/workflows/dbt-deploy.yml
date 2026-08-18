@@ -1,0 +1,49 @@
+name: dbt
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: dbt debug
+        run: uv run poe debug
+
+      - name: dbt seed
+        run: uv run dbt seed
+
+      - name: dbt run
+        run: uv run dbt run
+
+      - name: dbt test
+        run: uv run poe test
+
+      - name: Upload dbt artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-target
+          path: |
+            target/
+            logs/
+          retention-days: 7

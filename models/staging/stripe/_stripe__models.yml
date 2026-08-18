@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: stg_stripe__payments
+    description: "One row per Stripe payment, with typed columns and normalized email."
+    columns:
+      - name: payment_id
+        description: "Primary key."
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Stripe customer identifier."
+        tests:
+          - not_null
+      - name: customer_email
+        description: "Lower-cased, trimmed customer email. May be null (some Stripe customers have no email on file)."
+      - name: amount
+        description: "Payment amount in `currency` units."
+        tests:
+          - not_null
+      - name: currency
+        description: "ISO 4217 currency code."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['USD', 'EUR']
+      - name: created_at
+        description: "Timestamp the payment was created."
+        tests:
+          - not_null

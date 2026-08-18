@@ -1,0 +1,64 @@
+version: 2
+
+models:
+  - name: int_payments_enriched
+    description: >
+      Stripe payments enriched with the customer's matching Zoho orders
+      (joined on lower-cased customer_email). One row per payment; the
+      has_matching_order boolean flags whether the customer has at least
+      one Zoho order.
+    columns:
+      - name: payment_id
+        description: "Primary key. From stg_stripe__payments."
+        tests:
+          - unique
+          - not_null
+      - name: customer_email
+        description: "Lower-cased email used for the join."
+      - name: amount
+        description: "Payment amount."
+        tests:
+          - not_null
+      - name: currency
+        description: "ISO 4217 currency code."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['USD', 'EUR']
+      - name: created_at
+        description: "Payment creation timestamp."
+        tests:
+          - not_null
+      - name: order_id
+        description: "First matching Zoho order_id, or null."
+      - name: order_total
+        description: "Total amount of the matching Zoho order, or null."
+      - name: has_matching_order
+        description: "True iff at least one Zoho order matches this payment's email."
+
+  - name: int_deals_with_first_payment
+    description: >
+      Hubspot deals enriched with the customer's earliest Stripe payment
+      timestamp (joined on lower-cased customer_email). One row per deal.
+    columns:
+      - name: deal_id
+        description: "Primary key. From stg_hubspot__deals."
+        tests:
+          - unique
+          - not_null
+      - name: customer_email
+        description: "Lower-cased email used for the join."
+        tests:
+          - not_null
+      - name: amount
+        description: "Deal amount in USD."
+        tests:
+          - not_null
+      - name: stage
+        description: "Pipeline stage."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Closed-Won', 'Closed-Lost', 'Negotiation', 'Qualification', 'Prospecting']
+      - name: first_payment_at
+        description: "Earliest Stripe payment timestamp for this customer; null if no payments."
