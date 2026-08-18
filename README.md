@@ -1,18 +1,19 @@
-# hello-dbt
+# dbt-saas-analytics
 
-A small, self-contained dbt project that loads three CSV seeds (Hubspot deals, Stripe payments, Zoho orders) into a local DuckDB file, and transforms them through a standard **staging → intermediate → marts** layering.
+A small, self-contained dbt project that loads three CSV seeds (Hubspot deals, Stripe payments, Zoho orders) into a local DuckDB file, and transforms them through a standard **staging → intermediate → marts** layering. Marts are organized per business domain (sales, revenue, customer) and tagged accordingly.
 
-The point of the project is to be a clean, runnable reference: real sources, real tests, a real mart. Nothing more.
+The point of the project is to be a clean, runnable reference: real sources, real tests, real marts, full CI. Nothing more.
 
 ## Layout
 
 ```
-hello-dbt/
+dbt-saas-analytics/
 ├── pyproject.toml           # project metadata + poethepoet tasks
 ├── uv.lock                  # pinned dependency graph (commit this)
 ├── dbt_project.yml          # layer-level materialization rules
 ├── profiles.yml             # local DuckDB target
 ├── .sqlfluff                # sqlfluff config (duckdb dialect)
+├── styleguide.md            # project conventions (fact vs. dim, layering, etc.)
 ├── seeds/                   # CSV inputs
 │   ├── hubspot_deals.csv
 │   ├── stripe_payments.csv
@@ -26,9 +27,10 @@ hello-dbt/
     ├── intermediate/        # light joins / enrichments
     │   ├── int_payments_enriched.sql
     │   └── int_deals_with_first_payment.sql
-    └── marts/               # tables for downstream consumers
-        ├── dim_customers.sql
-        └── fct_won_deals.sql
+    └── marts/               # tables for downstream consumers, grouped by domain
+        ├── customer/        # dim_customers, fct_customer_engagement
+        ├── revenue/         # fct_payments
+        └── sales/           # fct_won_deals, fct_pipeline
 ```
 
 ## Data lineage

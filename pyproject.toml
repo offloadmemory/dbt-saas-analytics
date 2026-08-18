@@ -1,12 +1,12 @@
 [project]
-name = "hello-dbt"
+name = "dbt-saas-analytics"
 version = "2.0.0"
-description = "A small dbt project that loads Hubspot, Stripe, and Zoho CSV seeds into DuckDB and exposes a clean staging → intermediate → marts model."
+description = "A reference dbt + DuckDB project that loads Hubspot, Stripe, and Zoho CSV seeds and exposes a clean staging → intermediate → marts model with per-domain organization."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 license = { text = "MIT" }
 authors = [
-    { name = "hello-dbt maintainers" },
+    { name = "dbt-saas-analytics maintainers" },
 ]
 dependencies = [
     "dbt-core~=1.10",

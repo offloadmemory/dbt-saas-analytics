@@ -300,6 +300,25 @@ wheels = [
 ]
 
 [[package]]
+name = "dbt-saas-analytics"
+version = "2.0.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "dbt-core" },
+    { name = "dbt-duckdb" },
+    { name = "faker" },
+    { name = "poethepoet" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "dbt-core", specifier = "~=1.10" },
+    { name = "dbt-duckdb", specifier = "~=1.10" },
+    { name = "faker" },
+    { name = "poethepoet", specifier = ">=0.32" },
+]
+
+[[package]]
 name = "deepdiff"
 version = "8.6.2"
 source = { registry = "https://pypi.org/simple" }
@@ -349,25 +368,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/98/d2/026af1e002bbc6df534d1f8262b18ec79a974f928e9290bfbfdfe7c7b2af/faker-40.36.0.tar.gz", hash = "sha256:754048c76c03afa7de83eee8f4bcee3cf668cbb7d995f54a4e9678db7f110308", size = 2025903, upload-time = "2026-07-24T21:11:33.088Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/50/9a/b947ed175ce9a0dcb070ccf3607f0ce8720cfb5ed1a36166a150b2acd5af/faker-40.36.0-py3-none-any.whl", hash = "sha256:82b9497d9cfe017048075bcf969298a74b1b6e39f5e4dad1211085d1133f7b62", size = 2062829, upload-time = "2026-07-24T21:11:31.37Z" },
-]
-
-[[package]]
-name = "hello-dbt"
-version = "2.0.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "dbt-core" },
-    { name = "dbt-duckdb" },
-    { name = "faker" },
-    { name = "poethepoet" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "dbt-core", specifier = "~=1.10" },
-    { name = "dbt-duckdb", specifier = "~=1.10" },
-    { name = "faker" },
-    { name = "poethepoet", specifier = ">=0.32" },
 ]
 
 [[package]]

@@ -9,7 +9,7 @@ This is the project's working style guide for dbt models, names, layers, and mat
 ## 1. Project layout
 
 ```
-hello-dbt/
+dbt-saas-analytics/
 ├── dbt_project.yml          # layer-level materialization rules
 ├── profiles.yml             # local DuckDB target
 ├── pyproject.toml           # uv + poethepoet
