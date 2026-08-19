@@ -1,7 +1,7 @@
 [project]
 name = "dbt-saas-analytics"
 version = "2.0.0"
-description = "A reference dbt + DuckDB project that loads Hubspot, Stripe, and Zoho CSV seeds and exposes a clean staging → intermediate → marts model with per-domain organization."
+description = "A reference dbt + Databricks project that loads Hubspot, Stripe, and Zoho CSV seeds into Unity Catalog and exposes a clean staging → intermediate → marts model with per-domain organization."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 license = { text = "MIT" }
@@ -10,9 +10,10 @@ authors = [
 ]
 dependencies = [
     "dbt-core~=1.10",
-    "dbt-duckdb~=1.10",
+    "dbt-databricks~=1.10",
     "faker",
     "poethepoet>=0.32",
+    "python-dotenv>=1.0",
 ]
 
 [project.scripts]
@@ -41,15 +42,15 @@ module-root = ""
 # ----------------------------------------------------------------------
 
 [tool.poe.tasks]
-# Sanity check: profile found, adapter connects.
-debug = "dbt debug"
+# Sanity check: profile found, adapter connects. Reads `.env` via dbt_runner.
+debug = "python dbt_runner.py debug"
 
 # Full local build: load seeds, then build all models. Implemented as a
 # script-style task so the workflow is encoded in build.py and easy to read.
 build = { script = "build" }
 
 # Run schema tests against the built models.
-test = "dbt test"
+test = "python dbt_runner.py test"
 
 # Run the standalone Faker-based sample generator. Writes
 # stripe_payments_sample.csv next to the script; the dbt pipeline itself
@@ -59,7 +60,7 @@ seed-sample = "python seeder.py"
 # Build dbt docs (target/manifest.json + target/catalog.json + index.html).
 # Run `uv run poe docs-serve` separately to browse at http://localhost:8080.
 # Only this project's models appear in the lineage graph (no packages installed).
-docs = "dbt docs generate"
+docs = "python dbt_runner.py docs generate"
 
 # Serve the generated docs locally at http://localhost:8080. Re-runs are safe;
 # dbt will refuse to start if the port is already taken.

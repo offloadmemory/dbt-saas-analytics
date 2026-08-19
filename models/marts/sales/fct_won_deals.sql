@@ -24,7 +24,7 @@ final as (
         won.first_payment_at,
         case
             when won.first_payment_at is not null and won.close_date is not null
-                then date_diff('day', won.first_payment_at::date, won.close_date)
+                then datediff(won.close_date, won.first_payment_at::date)
         end as days_to_first_payment
     from won
     left join customers

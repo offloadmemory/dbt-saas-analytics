@@ -62,9 +62,9 @@ final as (
         -- "Last engagement" = most recent of the three signals. Useful for
         -- "who hasn't engaged in 90 days" queries.
         greatest(
-            coalesce(deals.last_deal_date, '1900-01-01'::date),
-            coalesce(payments.last_payment_at, '1900-01-01'::timestamp),
-            coalesce(orders.last_order_date, '1900-01-01'::date)
+            coalesce(deals.last_deal_date, timestamp '1900-01-01 00:00:00'),
+            coalesce(payments.last_payment_at, timestamp '1900-01-01 00:00:00'),
+            coalesce(orders.last_order_date, timestamp '1900-01-01 00:00:00')
         ) as last_engagement_at
     from customers
     left join deals on customers.customer_email = deals.customer_email

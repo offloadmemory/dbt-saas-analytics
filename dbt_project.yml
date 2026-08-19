@@ -18,20 +18,37 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
-# Seeds land in the target schema (`main` by default). The source declarations
-# in models/staging/_sources.yml point at `main.<table>` accordingly.
+# Seeds land in the `seeds` schema (see `seeds:` block below). The source
+# declarations in `models/staging/_sources.yml` point at `seeds.<table>` to
+# match where `dbt seed` placed the CSV tables.
 
 # Layer-level materialization. Staging and intermediate are views (cheap to
-# rebuild, easy to inspect in DuckDB). Marts are tables so downstream consumers
-# (BI tools, notebooks) get a stable physical artifact.
+# rebuild, easy to inspect in the catalog). Marts are tables so downstream
+# consumers (BI tools, notebooks) get a stable physical artifact. The
+# `+schema:` config sends each layer to its own Unity Catalog schema.
 models:
   hello_dbt:
     staging:
       +materialized: view
+      +schema: staging
     intermediate:
       +materialized: view
+      +schema: intermediate
     marts:
       +materialized: table
+      +schema: marts
+
+# Per-layer schema routing. With this config the pipeline materializes into
+# four distinct schemas under one Unity Catalog catalog:
+#   <catalog>.seeds         - raw CSVs loaded by `dbt seed`
+#   <catalog>.staging       - 1:1 source views, lightly typed
+#   <catalog>.intermediate  - cross-source joins and enrichments
+#   <catalog>.marts         - business-facing fact and dim tables
+# Setting `schema:` at the profile level to `default` (`profiles.yml`) covers
+# any resource without an explicit override.
+seeds:
+  hello_dbt:
+    +schema: seeds
 
 # dbt-project-evaluator overrides a small set of dbt core macros so the audit
 # can run on adapters (including DuckDB) that need cross-database shims. This

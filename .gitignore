@@ -12,3 +12,7 @@ logs/
 .venv/
 __pycache__/
 *.pyc
+
+# Environment file with Databricks connection values. `.env.example`
+# is committed so contributors know the shape; the real `.env` is per-machine.
+.env

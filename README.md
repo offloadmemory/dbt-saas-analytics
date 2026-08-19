@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/offloadmemory/dbt-saas-analytics/actions/workflows/dbt-deploy.yml/badge.svg)](https://github.com/offloadmemory/dbt-saas-analytics/actions)
 
-A small, self-contained dbt project that loads three CSV seeds (Hubspot deals, Stripe payments, Zoho orders) into a local DuckDB file, and transforms them through a standard **staging → intermediate → marts** layering. Marts are organized per business domain (sales, revenue, customer) and tagged accordingly.
+A small, self-contained dbt project that loads three CSV seeds (Hubspot deals, Stripe payments, Zoho orders) into a Databricks Unity Catalog and transforms them through a standard **staging → intermediate → marts** layering. Marts are organized per business domain (sales, revenue, customer) and tagged accordingly.
 
 The point of the project is to be a clean, runnable reference: real sources, real tests, real marts, full CI. Nothing more.
 
@@ -12,9 +12,12 @@ The point of the project is to be a clean, runnable reference: real sources, rea
 dbt-saas-analytics/
 ├── pyproject.toml           # project metadata + poethepoet tasks
 ├── uv.lock                  # pinned dependency graph (commit this)
-├── dbt_project.yml          # layer-level materialization rules
-├── profiles.yml             # local DuckDB target
-├── .sqlfluff                # sqlfluff config (duckdb dialect)
+├── dbt_project.yml          # layer-level materialization + per-layer schema routing
+├── profiles.yml             # Databricks Free Edition target (env-var driven)
+├── dbt_runner.py            # loads .env, execs dbt (the single entrypoint poe tasks use)
+├── .env.example             # template for the four Databricks connection values
+├── .env                     # per-machine secrets (gitignored)
+├── .sqlfluff                # sqlfluff config (duckdb dialect — switch to databricks in a follow-up)
 ├── styleguide.md            # project conventions (fact vs. dim, layering, etc.)
 ├── seeds/                   # CSV inputs
 │   ├── hubspot_deals.csv
@@ -88,7 +91,7 @@ flowchart LR
 
 - [uv](https://docs.astral.sh/uv/) (install with `curl -LsSf https://astral.sh/uv/install.sh | sh` or `brew install uv`).
 - Python 3.10–3.12 (uv will provision this automatically if it's not already installed).
-- A local DuckDB installation is **not** required — `dbt-duckdb` ships the engine.
+- A [Databricks Free Edition](https://www.databricks.com/product/free-trial) workspace with a SQL Warehouse running, and a Personal Access Token (User Settings → Developer → Access tokens). The token goes into `.env` — see Configuration below.
 
 ## Install
 
@@ -98,18 +101,38 @@ uv sync
 
 This creates a project-local `.venv` and installs the exact versions pinned in `uv.lock`.
 
+## Configuration
+
+Connection values live in a per-machine `.env` file (gitignored). Copy the template, fill in the four required values, and every poe task will pick them up automatically:
+
+```bash
+cp .env.example .env       # one time
+$EDITOR .env               # paste in host, http_path, token, catalog
+```
+
+Where to find each value in the Databricks UI:
+
+| Key                       | Source                                                                                  |
+| ------------------------- | --------------------------------------------------------------------------------------- |
+| `DBT_DATABRICKS_HOST`     | Workspace browser URL (no scheme), e.g. `dbc-74359442-7f30.cloud.databricks.com`        |
+| `DBT_DATABRICKS_HTTP_PATH`| SQL Warehouse → Connection details → HTTP path, e.g. `/sql/1.0/warehouses/abc123def456` |
+| `DBT_DATABRICKS_TOKEN`    | User Settings → Developer → Access tokens. Looks like `dapi...`                         |
+| `DBT_DATABRICKS_CATALOG`  | Catalog Explorer → top-level catalog name. This workspace uses `dbt_sass_analytics`.   |
+
+The loader (`dbt_runner.py`) calls `dotenv` before exec'ing dbt, so values stay out of your shell and out of git. If a value is missing, the task fails fast with a config error rather than a confusing dbt parse error.
+
 ## Run
 
 All dbt workflows are wrapped in [poethepoet](https://poethepoet.natn.io/) tasks. Run them with `uv run poe <task>`:
 
 ```bash
-# 1. Confirm dbt can find the profile and connect to DuckDB
+# 1. Confirm dbt can find the profile and reach the workspace
 uv run poe debug
 
-# 2. Full local build: load seeds, then build all models
+# 2. Full build: load seeds, then build all models
 uv run poe build
 
-# 3. Run schema tests (unique, not_null, accepted_values, ...)
+# 3. Run schema + singular tests (unique, not_null, accepted_values, ...)
 uv run poe test
 
 # 4. Build + test in one go
@@ -117,29 +140,34 @@ uv run poe all
 
 # 5. Generate a 1000-row sample CSV via the standalone Faker script
 uv run poe seed-sample
+
+# 6. Generate + serve the docs at http://localhost:8080 (--no-browser)
+uv run poe docs
+uv run poe docs-serve
 ```
 
 | Task          | What it does                                              |
 | ------------- | --------------------------------------------------------- |
 | `debug`       | `dbt debug` — profile + adapter connectivity.             |
 | `build`       | `dbt seed` then `dbt run` (staging → intermediate → marts).|
-| `test`        | `dbt test` — schema tests on all models.                  |
+| `test`        | `dbt test` — schema + singular tests on all models.        |
 | `all`         | `build` then `test`.                                      |
 | `seed-sample` | Run `seeder.py` to write `stripe_payments_sample.csv`.    |
 | `docs`        | `dbt docs generate` — write the docs site to `target/`.   |
+| `docs-serve`  | `dbt docs serve --port 8080 --no-browser` — local viewer.  |
 
-After `uv run poe build`, the local DuckDB file is at `./hello_dbt.duckdb` (override with the `DBT_DUCKDB_PATH` env var, which `profiles.yml` reads).
+`poe build` materializes models into four schemas under your catalog: `<catalog>.seeds`, `<catalog>.staging`, `<catalog>.intermediate`, `<catalog>.marts`. The schema routing is configured in `dbt_project.yml`.
 
 ## Querying the output
 
-Use the DuckDB CLI, or any tool that speaks the DuckDB driver:
+The Databricks SQL Editor (in the workspace UI) is the easiest way to inspect the marts. Open it from the left rail ("SQL Editor" under "Persona: Data Warehousing"), pick your warehouse, and run any of:
 
-```bash
-duckdb hello_dbt.duckdb -c "select * from fct_won_deals"
-duckdb hello_dbt.duckdb -c "select * from dim_customers order by total_deal_amount desc"
+```sql
+select * from <catalog>.marts.fct_won_deals;
+select * from <catalog>.marts.dim_customers order by total_deal_amount desc;
 ```
 
-In DuckDB, dbt models are materialized into the schema named after the layer by default (e.g. `main_fct_won_deals`, `main_dim_customers` — schemas are configured by the project; see `dbt_project.yml` if you change this).
+The Catalog Explorer shows the full four-schema layout (`<catalog>.seeds`, `<catalog>.staging`, `<catalog>.intermediate`, `<catalog>.marts`). The lineage graph in dbt docs (run `poe docs` then `poe docs-serve`) renders across these schemas as well.
 
 ## Project management
 
@@ -167,14 +195,11 @@ The lockfile (`uv.lock`) is committed so installs are reproducible across machin
 ## Generating and viewing dbt docs
 
 ```bash
-## Generating and viewing dbt docs
-
-```bash
 # Build the docs site (writes target/manifest.json, target/catalog.json, target/index.html)
 uv run poe docs
 
-# Serve the docs locally on http://localhost:8080
-uv run dbt docs serve --port 8080
+# Serve the docs locally on http://localhost:8080 (--no-browser)
+uv run poe docs-serve
 ```
 
 The lineage graph, model descriptions, column docs, and test coverage are all rendered in the browser.
@@ -208,7 +233,9 @@ Each folder has its own `_*__models.yml` with column descriptions and schema tes
 
 - [GitHub repo](https://github.com/offloadmemory/dbt-saas-analytics)
 - [dbt documentation](https://docs.getdbt.com/)
-- [dbt-duckdb adapter](https://github.com/duckdb/dbt-duckdb)
-- [DuckDB](https://duckdb.org/)
+- [dbt-databricks adapter](https://github.com/databricks/dbt-databricks)
+- [Databricks Free Edition](https://www.databricks.com/product/free-trial)
+- [Databricks SQL reference](https://docs.databricks.com/aws/en/sql/language-manual/functions)
 - [uv](https://docs.astral.sh/uv/)
 - [poethepoet](https://poethepoet.natn.io/)
+- [python-dotenv](https://pypi.org/project/python-dotenv/)

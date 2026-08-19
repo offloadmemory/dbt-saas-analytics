@@ -2,8 +2,13 @@ hello_dbt:
   target: dev
   outputs:
     dev:
-      type: duckdb
-      # Path to the local DuckDB file. Override with the DBT_DUCKDB_PATH env
-      # var to point CI or other tools at a different file.
-      path: "{{ env_var('DBT_DUCKDB_PATH', 'hello_dbt.duckdb') }}"
+      type: databricks
+      # All four connection values come from env vars so this file stays
+      # committable. See README.md → Configuration for where to find each
+      # value in the Databricks UI.
+      host:     "{{ env_var('DBT_DATABRICKS_HOST') }}"
+      http_path: "{{ env_var('DBT_DATABRICKS_HTTP_PATH') }}"
+      token:    "{{ env_var('DBT_DATABRICKS_TOKEN') }}"
+      catalog:  "{{ env_var('DBT_DATABRICKS_CATALOG') }}"
+      schema:   "{{ env_var('DBT_DATABRICKS_SCHEMA', 'default') }}"
       threads: 4

@@ -1,14 +1,14 @@
 version: 2
 
-# Seeds are loaded into the target schema (default: `main`). The dbt-duckdb
-# adapter prefixes any `+schema:` seed config with the target schema and joins
-# it with `_`, so for a clean layout we keep all seeds in `main` and point
-# each source at `main.<table>` here.
+# Seeds are loaded into the `seeds` schema (configured in `dbt_project.yml`
+# under the `seeds:` block). All three sources below resolve against that
+# same schema, so the staging models built on top of them pick up the loaded
+# CSVs directly.
 
 sources:
   - name: hubspot
     description: "Hubspot CRM deals loaded from seeds/hubspot_deals.csv."
-    schema: main
+    schema: seeds
     tags: [sales]
     tables:
       - name: hubspot_deals
@@ -31,7 +31,7 @@ sources:
 
   - name: stripe
     description: "Stripe payment transactions loaded from seeds/stripe_payments.csv."
-    schema: main
+    schema: seeds
     tags: [revenue]
     tables:
       - name: stripe_payments
@@ -52,7 +52,7 @@ sources:
 
   - name: zoho
     description: "Zoho order data loaded from seeds/zoho_orders.csv."
-    schema: main
+    schema: seeds
     tags: [revenue]
     tables:
       - name: zoho_orders
